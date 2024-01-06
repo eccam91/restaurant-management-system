@@ -76,7 +76,7 @@ public class Order {
         if (fulfilmentTime != null) {
             RestaurantUtils.validateTime(fulfilmentTime, "Čas vyřízení objednávky");
             if (fulfilmentTime.isBefore(orderedTime)) {
-                throw new RestaurantException("Čas vyřízení objednávky nesmí být před časem vzniku objednávky.");
+                throw new RestaurantException("Čas vyřízení objednávky nesmí předcházet času vzniku objednávky.");
             }
         }
         this.fulfilmentTime = fulfilmentTime;

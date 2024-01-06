@@ -23,6 +23,6 @@ public class Table {
                 return table;
             }
         }
-        throw new RestaurantException("Stůl s číslem " + tableNumber + " nenalezen.");
+        throw new RestaurantException("Stůl s číslem [" + tableNumber + "] nenalezen.");
     }
 }

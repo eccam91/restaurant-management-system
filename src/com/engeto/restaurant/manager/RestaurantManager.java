@@ -198,72 +198,78 @@ public class RestaurantManager {
         }
     }
 
-    public static void loadDataFromFile(String dishFileName, String orderFileName) throws RestaurantException {
+    public static void loadDataFromFile(String dishFileName, String orderFileName) {
         try {
             loadDishesFromFile(dishFileName);
             loadOrdersFromFile(orderFileName);
-        } catch (RestaurantException e) {
-            System.err.println("Chyba při načítání evidence ze souboru - " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Chyba při načítání evidence ze souboru: " + e.getMessage());
         }
     }
 
     private static void loadDishesFromFile(String fileName) throws RestaurantException {
         int lineNumber = 1;
+        String line = null;
         try (Scanner scanner = new Scanner(new BufferedReader(new FileReader(fileName)))) {
             while (scanner.hasNextLine()) {
-                String line = scanner.nextLine();
-                String[] parts = line.split(";");
-                RestaurantUtils.validateNumberOfBlocks(parts, lineNumber, 5, "pokrmů");
-                long id = Long.parseLong(parts[0].trim());
-                String title = parts[1].trim();
-                BigDecimal price = RestaurantUtils.parsePrice(parts[2].trim(), lineNumber, line);
-                int preparationTime = RestaurantUtils.parsePreparationTime(parts[3].trim(), lineNumber, line);
-                String image = parts[4].trim();
-
-                Dish dish = Dish.createDishWithId(id, title, price, preparationTime, image);
-                CookBook.addDishToCookBook(dish);
+                line = scanner.nextLine();
+                parseLineDish(line);
                 lineNumber++;
             }
         } catch (FileNotFoundException e) {
-            System.err.println("Nepodařilo se nalézt soubor s jídly: " + e.getLocalizedMessage());
+            throw new RestaurantException("Nepodařilo se nalézt zásobník jídel. " + e.getLocalizedMessage());
+        } catch (RestaurantException | NumberFormatException e) {
+            throw new RestaurantException("Zásobník jídel | na řádku č. " + lineNumber + ": [" + line + "] -> " + e.getMessage());
         }
+    }
+
+    private static void parseLineDish(String line) throws NumberFormatException, RestaurantException {
+        String[] parts = line.split(";");
+        RestaurantUtils.validateNumberOfBlocks(parts, 5);
+        long id = Long.parseLong(parts[0].trim());
+        String title = parts[1].trim();
+        BigDecimal price = RestaurantUtils.parsePrice(parts[2].trim());
+        int preparationTime = RestaurantUtils.parsePreparationTime(parts[3].trim());
+        String image = parts[4].trim();
+
+        Dish dish = Dish.createDishWithId(id, title, price, preparationTime, image);
+        CookBook.addDishToCookBook(dish);
     }
 
     public static void loadOrdersFromFile(String fileName) throws RestaurantException {
         int lineNumber = 1;
+        String line = null;
 
         try (Scanner scanner = new Scanner(new BufferedReader(new FileReader(fileName)))) {
             while (scanner.hasNextLine()) {
-                String line = scanner.nextLine();
-                parseLineOrder(line, lineNumber);
+                line = scanner.nextLine();
+                parseLineOrder(line);
                 lineNumber++;
             }
         } catch (FileNotFoundException e) {
-            System.err.println("Nepodařilo se nalézt soubor s objednávkami: "+e.getLocalizedMessage());
+            throw new RestaurantException("Nepodařilo se nalézt zásobník objednávek. " + e.getLocalizedMessage());
+        } catch (RestaurantException | NumberFormatException e) {
+            throw new RestaurantException("Zásobník objednávek | na řádku č. " + lineNumber + ": [" + line + "] -> " + e.getMessage());
         }
     }
 
 
-    private static void parseLineOrder(String line, int lineNumber) throws RestaurantException {
-        try {
-            String[] parts = line.split(";");
-            RestaurantUtils.validateNumberOfBlocks(parts, lineNumber, 7, "objednávek");
+    private static void parseLineOrder(String line) throws RestaurantException {
+        String[] parts = line.split(";");
+        RestaurantUtils.validateNumberOfBlocks(parts, 7);
 
-            int tableNumber = Integer.parseInt(parts[1].trim());
-            long dishId = Long.parseLong(parts[2].trim());
-            int quantity = Integer.parseInt(parts[3].trim());
-            boolean isPaid = Boolean.parseBoolean(parts[5].trim());
+        int tableNumber = Integer.parseInt(parts[1].trim());
+        long dishId = Long.parseLong(parts[2].trim());
+        int quantity = Integer.parseInt(parts[3].trim());
+        boolean isPaid = Boolean.parseBoolean(parts[5].trim());
 
-            Dish dish = RestaurantUtils.getDishById(parts[2].trim(), dishId);
-            LocalDateTime orderedTime = RestaurantUtils.parseDateTime(parts[4].trim(), line);
-            LocalDateTime fulfilmentTime = null;
-            if (!parts[5].trim().isEmpty() && !parts[5].trim().equalsIgnoreCase("null")) {
-                fulfilmentTime = RestaurantUtils.parseDateTime(parts[5].trim(), line);
-            }
-            createOrder(dish, quantity, tableNumber, orderedTime, fulfilmentTime, isPaid);
-        } catch (RestaurantException e) {
-            throw new RestaurantException("Chyba při načítání objednávek ze souboru na řádku č. " + lineNumber + ": " + e.getMessage());
+        Dish dish = RestaurantUtils.getDishById(dishId);
+        LocalDateTime orderedTime = RestaurantUtils.parseDateTime(parts[4].trim());
+        LocalDateTime fulfilmentTime = null;
+        if (!parts[5].trim().isEmpty() && !parts[5].trim().equalsIgnoreCase("null")) {
+            fulfilmentTime = RestaurantUtils.parseDateTime(parts[5].trim());
         }
+        createOrder(dish, quantity, tableNumber, orderedTime, fulfilmentTime, isPaid);
     }
 
     private static void createOrder(Dish dish, int quantity, int tableNumber, LocalDateTime orderedTime,

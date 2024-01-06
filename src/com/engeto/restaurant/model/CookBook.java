@@ -28,7 +28,7 @@ public class CookBook {
                 return dish;
             }
         }
-        throw new RestaurantException("Pokrm s číslem " + dishId + " nenalezen.");
+        throw new RestaurantException("Pokrm s identifikačním číslem [" + dishId + "] nenalezen.");
     }
 
     public static Map<String, Dish> getAllDishes() throws RestaurantException {

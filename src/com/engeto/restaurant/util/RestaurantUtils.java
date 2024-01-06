@@ -28,49 +28,53 @@ public class RestaurantUtils {
         }
     }
 
-    public static BigDecimal parsePrice(String priceString, int lineNumber, String line) throws RestaurantException {
+    public static BigDecimal parsePrice(String priceString) throws RestaurantException {
         try {
             BigDecimal price = new BigDecimal(priceString.trim());
             RestaurantUtils.validatePrice(price);
             return price;
-        } catch (NumberFormatException | RestaurantException e) {
-            throw new RestaurantException("Chyba při zpracování ceny jídla na řádku č. " + lineNumber + ": " + line + " -> " + e.getMessage());
+        } catch (RestaurantException e) {
+            throw new RestaurantException("Chyba při zpracování ceny jídla: "+ e.getMessage());
+        } catch (NumberFormatException e) {
+            throw new RestaurantException("Chyba při zpracování ceny jídla: Neplatné číslo (" + e.getMessage() + ")");
         }
     }
 
-    public static int parsePreparationTime(String prepTimeString, int lineNumber, String line) throws RestaurantException {
+    public static int parsePreparationTime(String prepTimeString) throws RestaurantException {
         try {
             int preparationTime = Integer.parseInt(prepTimeString.trim());
             RestaurantUtils.validatePreparationTime(preparationTime);
             return preparationTime;
-        } catch (NumberFormatException | RestaurantException e) {
-            throw new RestaurantException("Chyba při zpracování doby přípravy jídla na řádku č. " + lineNumber + ": " + line + " -> " + e.getMessage());
+        } catch (RestaurantException e) {
+            throw new RestaurantException("Chyba při zpracování doby přípravy jídla: " + e.getMessage());
+        } catch (NumberFormatException e) {
+            throw new RestaurantException("Chyba při zpracování doby přípravy jídla: Neplatné číslo (" + e.getMessage() + ")");
         }
     }
 
-    public static void validateNumberOfBlocks(String[] parts, int lineNumber, int expectedNumberOfBlocks, String itemType) throws RestaurantException {
+    public static void validateNumberOfBlocks(String[] parts, int expectedNumberOfBlocks) throws RestaurantException {
         int numOfBlocks = parts.length;
         if (numOfBlocks != expectedNumberOfBlocks) {
             throw new RestaurantException(
-                    String.format("Nesprávný počet položek v souboru %s na řádku %d! Očekáváný: %d, skutečný: %d.",
-                            itemType, lineNumber, expectedNumberOfBlocks, numOfBlocks)
+                    String.format("Nesprávný počet položek na řádku! Očekáváný: %d, skutečný: %d.",
+                            expectedNumberOfBlocks, numOfBlocks)
             );
         }
     }
 
-    public static LocalDateTime parseDateTime(String dateTimePart, String line) throws RestaurantException {
+    public static LocalDateTime parseDateTime(String dateTimePart) throws RestaurantException {
         try {
             return LocalDateTime.parse(dateTimePart.trim());
         } catch (DateTimeParseException e) {
-            throw new RestaurantException("Chybně zadané datum [" + dateTimePart + "] -> " + line);
+            throw new RestaurantException("Chybně zadané datum [" + dateTimePart + "]");
         }
     }
 
-    public static Dish getDishById(String dishIdPart, long dishId) throws RestaurantException {
+    public static Dish getDishById(long dishId) throws RestaurantException {
         try {
             return CookBook.getDishByIdFromCookBook(dishId);
         } catch (RestaurantException e) {
-            throw new RestaurantException("Pokrm s identifikačním číslem [" + dishIdPart + "] nenalezen!");
+            throw new RestaurantException(e.getMessage());
         }
     }
 }
