@@ -33,8 +33,6 @@ public class Main {
         //5. Změněná data ulož na disk.
         RestaurantManager.saveDataToFile("cookbook.txt", "orders.txt");
 
-        //6. Po opětovném spuštění aplikace musí být data opět v pořádku načtena. (Vyzkoušej!)
-
     }
 
 
