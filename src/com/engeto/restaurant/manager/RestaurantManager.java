@@ -145,13 +145,20 @@ public class RestaurantManager {
     }
 
     private static void appendOrderDetails(StringBuilder result, Order order, int itemNumber) {
-        BigDecimal totalPrice = order.getOrderedDish().getPrice().multiply(BigDecimal.valueOf(order.getQuantity()));
+        BigDecimal totalPrice = order.getOrderedDish().getPrice().multiply(BigDecimal.valueOf(order.getQuantity())).setScale(0);
         String title = order.getQuantity() > 1 ?
                 String.format("%s %dx", order.getOrderedDish().getTitle(), order.getQuantity()) :
                 order.getOrderedDish().getTitle();
 
-        result.append(String.format("%d. %s (%.2f Kč):\t%tH:%tM-%tH:%tM\t", itemNumber,
-                title, totalPrice, order.getOrderedTime(), order.getOrderedTime(), order.getFulfilmentTime(), order.getFulfilmentTime()));
+        result.append(String.format("%d. %s (%d Kč):\t%tH:%tM-", itemNumber,
+                title, totalPrice.intValue(), order.getOrderedTime(), order.getOrderedTime()));
+
+        if (order.getFulfilmentTime() != null) {
+            result.append(String.format("%tH:%tM\t", order.getFulfilmentTime(), order.getFulfilmentTime()));
+        } else {
+            result.append("\t");
+        }
+
         if (order.isPaid()) {
             result.append("zaplaceno");
         }
