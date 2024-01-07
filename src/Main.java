@@ -8,6 +8,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class Main {
+
+    //Discord luciemarkova
+
     public static void main(String[] args) throws RestaurantException {
 
         createTables(15);
